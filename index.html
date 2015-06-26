@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Demo JSSDK for RingCentral</title>
+</head>
+<body>
+<div>
+    AppKey:<input type="text" id="appkey" value=""/>
+</div>
+<div>
+    App Secret: <input type="text"  id="appSecret" value=""/>
+</div>
+<div>
+    UserID:<input type="text" id="userid" value=""/>
+</div>
+<div>
+    Extension:<input type="text" id="extension" value=""/>
+</div>
+<div>
+    Password:<input type="password"  id="password" value=""/>
+</div>
+<div>
+    <input type = "button" value="Authorize" onclick="rcm.authorizeFields();"/>
+</div>
+<div>
+    <input type = "button" value="User Information" onclick="rcm.rch.get_info();">
+</div>
+<div>
+    <p id="result" style="align-self: center"></p>
+</div>
+<div>
+    From number:<input type="text" id="fromnumber" value=""/>
+    to Number : <input type="text"  id="tonumber" value=""/>
+    message : <input type="text"  id="textmessage" value="Hi This is test message"/>
+    <input type = "button" value="sendSMS" onclick="rcm.rch.send_sms($('#fromnumber').val(),$('#tonumber').val(),$('#textmessage').val());"/>
+</div>
+<div>
+    From number:<input type="text" id="from" value=""/>
+    <input type = "button" value="ringout" onclick="rcm.rch.ring_out($('#from').val(),$('#tonumber').val());"/>
+</div>
+<div>
+    <input type = "button" value="call logs" onclick="rcm.rch.call_log();"/>
+    <p id="call-logs" style="align-self: center"></p>
+</div>
+
+<div>
+    <input type = "button" value="presence check" onclick="rcm.rch.presence();"/>
+    <p id="presence" style="align-self: center"></p>
+</div>
+
+<div>
+    <input type = "button" value="message-store" onclick="rcm.rch.messagestore();"/>
+    <p id="message-store" style="align-self: center"></p>
+</div>
+
+
+
+
+</body>
+
+<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.5/highlight.min.js"></script>
+<script src="./bower_components/es6-promise-polyfill/promise.js"></script>
+<script src="./bower_components/cryptojslib/rollups/aes.js"></script>
+<script src="./bower_components/cryptojslib/rollups/sha256.js"></script>
+<script src="./bower_components/cryptojslib/components/mode-ecb.js"></script>
+<script src="./bower_components/pubnub/web/pubnub.js"></script>
+<script src="./bower_components/rcsdk/build/rc-sdk.js"></script>
+<script>
+    function rcManager(appKeyField,appSecretField,usernameField,extensionField,passwordField) {
+        var t=this;
+        t.appKeyField    = appKeyField;
+        t.appSecretField = appSecretField;
+        t.usernameField  = usernameField;
+        t.extensionField = extensionField;
+        t.passwordField  = passwordField;
+        t.serverUrl = 'https://platform.devtest.ringcentral.com';
+        t.rcsdk     = '';
+        t.rch       = '';
+        t.authorizeFields = function() {
+            t.authorizeFull(
+                    $(t.appKeyField).val(),
+                    $(t.appSecretField).val(),
+                    $(t.usernameField).val(),
+                    $(t.extensionField).val(),
+                    $(t.passwordField).val()
+            );
+        }
+        t.authorizeFull = function(appKey,appSecret,username,extension,password) {
+            t.loadRcsdk(appKey,appSecret);
+            t.authorize(username,extension,password);
+        }
+        t.loadRcsdk = function(appKey,appSecret) {
+            t.rcsdk = new RCSDK({
+                server: t.serverUrl,
+                appKey: appKey,
+                appSecret: appSecret
+            });
+        }
+        t.authorize = function(username,extension,password) {
+            p = t.rcsdk.getPlatform();
+            p.authorize({
+                username:  username, // phone number in full format
+                extension: extension, // leave blank if direct number is used
+                password:  password
+            }).then(function(response) {
+                // your code here
+                alert('success: ');
+            }).catch(function(e) {
+                alert('ERR ' + e.message  || 'Server cannot authorize user');
+            });
+            t.rch = new rcHelper(p);
+        }
+    }
+
+    function rcHelper(platform) {
+        var t=this;
+        t.platform = platform;
+        t.send_sms = function(from,to,text) {
+            t.platform.post('/account/~/extension/~/sms', {
+                body: {
+                    from: {phoneNumber:from}, // Your sms-enabled phone number
+                    to: [
+                        {phoneNumber:to} // Second party's phone number
+                    ],
+                    text: text
+                }
+            }).then(function(response) {
+                alert('Success: ' + response.data.id);
+            }).catch(function(e) {
+                alert('Error: ' + e.message);
+            });
+        }
+
+        t.ring_out = function(from,to) {
+            this.platform.post('/account/~/extension/~/ringout', {
+                body: {
+                    from: {phoneNumber:from}, // Your sms-enabled phone number
+                    to: {phoneNumber:to}, // Second party's phone number
+                    playPrompt: true
+                }
+            }).then(function(response) {
+                //alert('Success: ' + response.data.id);
+            }).catch(function(e) {
+                alert('Error: ' + e.message);
+            });
+        }
+
+        t.call_log = function() {
+            t.platform.get('/account/~/extension/~/call-log').then(function(response) {
+                alert('Success: ' + response.data.uri.toString());
+                var txt=JSON.stringify(response.data, null, 2);
+                document.getElementById("call-logs").innerHTML=txt;
+            }).catch(function(e) {
+                alert('Error: ' + e.message);
+            });
+        }
+
+        t.presence = function() {
+            t.platform.get('/account/~/extension/~/presence').then(function(response) {
+                alert('Success: ' + response.data.uri.toString());
+                var txt=JSON.stringify(response.data, null, 2);
+                document.getElementById("presence").innerHTML=txt;
+            }).catch(function(e) {
+                alert('Error: ' + e.message);
+            });
+        }
+
+        t.get_info = function() {
+            t.platform.get('/account/~/').then(function(response) {
+                alert('Success: ' + response.data.uri.toString());
+                var txt=JSON.stringify(response.data, null, 2);
+                document.getElementById("result").innerHTML=txt;
+            }).catch(function(e) {
+                alert('Error: ' + e.message);
+            });
+        }
+
+        t.messagestore= function() {
+            t.platform.get('/account/~/extension/~/message-store').then(function(response) {
+                alert('Success: ' + response.data.uri.toString());
+                var txt=JSON.stringify(response.data, null, 2);
+                document.getElementById("message-store").innerHTML=txt;
+            }).catch(function(e) {
+                alert('Error: ' + e.message);
+            });
+        }
+    }
+
+    rcm = new rcManager('#appkey','#appSecret','#userid','#extension','#password');
+
+</script>
+</html>

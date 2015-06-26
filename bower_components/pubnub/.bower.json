@@ -1,0 +1,26 @@
+{
+  "name": "pubnub",
+  "version": "3.7.10",
+  "main": "web/pubnub.min.js",
+  "license": "https://github.com/pubnub/javascript/blob/master/LICENSE",
+  "ignore": [
+    "**/*",
+    "!web/pubnub.js",
+    "!web/pubnub.min.js"
+  ],
+  "keywords": [
+    "pubnub",
+    "javascript",
+    "realtime"
+  ],
+  "homepage": "https://github.com/pubnub/javascript",
+  "_release": "3.7.10",
+  "_resolution": {
+    "type": "version",
+    "tag": "3.7.10",
+    "commit": "095266cfd7067fb9cd8fc59fe9c3fad8ece285e0"
+  },
+  "_source": "git://github.com/pubnub/javascript.git",
+  "_target": "*",
+  "_originalSource": "pubnub"
+}

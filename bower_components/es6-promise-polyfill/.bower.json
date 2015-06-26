@@ -1,0 +1,21 @@
+{
+  "name": "es6-promise-polyfill",
+  "version": "1.0.0",
+  "main": "promise.js",
+  "ignore": [
+    ".*",
+    "**/.*",
+    "node_modules",
+    "test"
+  ],
+  "homepage": "https://github.com/lahmatiy/es6-promise-polyfill",
+  "_release": "1.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.0",
+    "commit": "70c9b49bf318f47696065fd40bf6a54b41009d23"
+  },
+  "_source": "git://github.com/lahmatiy/es6-promise-polyfill.git",
+  "_target": "*",
+  "_originalSource": "es6-promise-polyfill"
+}
